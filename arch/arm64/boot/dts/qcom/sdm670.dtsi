@@ -44,7 +44,7 @@
 	};
 
 	chosen {
-		bootargs = "quiet rcupdate.rcu_expedited=1 core_ctl_disable_cpumask=6-7";
+		bootargs = "quiet cgroup.memory=nokmem,nosocket rcupdate.rcu_expedited=1 core_ctl_disable_cpumask=6-7";
 	};
 
 	cpus {
