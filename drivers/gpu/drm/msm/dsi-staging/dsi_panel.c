@@ -4439,10 +4439,17 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 	uint32_t temp = 0;
 	u32 fod_backlight = 0;
 	u32 dim_backlight;
+	struct drm_device *drm_dev = NULL;
 	struct dsi_display *display;
 	struct mipi_dsi_host *host = panel->host;
 
 	mutex_lock(&panel->panel_lock);
+
+	if (host) {
+		display = container_of(host, struct dsi_display, host);
+		if (display && display->drm_dev)
+			drm_dev = display->drm_dev;
+	}
 
 	if (!panel->panel_initialized
 		&& param != DISPPARAM_FOD_BACKLIGHT_ON
@@ -4590,16 +4597,19 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 	case DISPPARAM_HBM_ON:
 		pr_info("hbm on\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_HBM_ON);
+ 		drm_dev->hbm_status = 1;
 		break;
 	case DISPPARAM_HBM_FOD_ON:
 		pr_info("hbm fod on\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_HBM_FOD_ON);
 		panel->skip_dimmingon = STATE_DIM_BLOCK;
 		panel->fod_hbm_enabled = true;
+ 		drm_dev->hbm_status = 1;
 		break;
 	case DISPPARAM_HBM_FOD2NORM:
 		pr_info("hbm fod to normal mode\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_HBM_FOD2NORM);
+ 		drm_dev->hbm_status = 1;
 		break;
 	case DISPPARAM_HBM_FOD_OFF:
 		pr_info("hbm fod off\n");
@@ -4622,11 +4632,13 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 			panel->in_aod = true;
 			panel->skip_dimmingon = STATE_NONE;
 		}
+ 		drm_dev->hbm_status = 1;
 		break;
 	case DISPPARAM_HBM_OFF:
 		pr_info("hbm off\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_HBM_OFF);
 		panel->skip_dimmingon = STATE_NONE;
+ 		drm_dev->hbm_status = 1;
 		break;
 	default:
 		break;
