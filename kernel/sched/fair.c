@@ -7025,6 +7025,9 @@ static int start_cpu(struct task_struct *p, bool boosted,
 	else
 		start_cpu = rd->max_cap_orig_cpu;
 
+	if (!sched_feat(STUNE_BOOST_BIAS_BIG))
+		start_cpu = rd->min_cap_orig_cpu;
+
 	return walt_start_cpu(start_cpu);
 }
 
