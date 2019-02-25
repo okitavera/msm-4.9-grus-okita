@@ -155,3 +155,4 @@ config DRM_SYNC_DEBUG
 	default n
 	help
 	  This makes MSM DRM drivers keep track of fence names.
+
