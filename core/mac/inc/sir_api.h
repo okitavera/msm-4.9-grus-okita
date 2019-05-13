@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2019 The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -1195,6 +1195,7 @@ typedef struct sAniGetTsmStatsRsp {
 				 * Per STA stats request must
 				 * contain valid
 				 */
+	struct qdf_mac_addr bssid; /* bssid to get the tsm stats for */
 	tAniTrafStrmMetrics tsmMetrics;
 	void *tsmStatsReq;      /* tsm stats request backup */
 } tAniGetTsmStatsRsp, *tpAniGetTsmStatsRsp;
@@ -3721,6 +3722,12 @@ typedef struct sSirRoamOffloadScanReq {
 	uint32_t min_delay_btw_roam_scans;
 	uint32_t roam_trigger_reason_bitmask;
 	bool roam_force_rssi_trigger;
+	bool roaming_scan_policy;
+	uint32_t btm_offload_config;
+	uint32_t btm_solicited_timeout;
+	uint32_t btm_max_attempt_cnt;
+	uint32_t btm_sticky_time;
+	uint32_t btm_query_bitmask;
 } tSirRoamOffloadScanReq, *tpSirRoamOffloadScanReq;
 
 typedef struct sSirRoamOffloadScanRsp {
@@ -6159,9 +6166,9 @@ struct sir_wifi_peer_signal_stats {
 	/* Background noise */
 	int32_t nf[WIFI_MAX_CHAINS];
 
-	int32_t per_ant_rx_mpdus[WIFI_MAX_CHAINS];
-	int32_t per_ant_tx_mpdus[WIFI_MAX_CHAINS];
-	int32_t num_chain;
+	uint32_t per_ant_rx_mpdus[WIFI_MAX_CHAINS];
+	uint32_t per_ant_tx_mpdus[WIFI_MAX_CHAINS];
+	uint32_t num_chain;
 };
 
 #define WIFI_VDEV_NUM     4
