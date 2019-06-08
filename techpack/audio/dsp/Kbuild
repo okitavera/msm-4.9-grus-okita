@@ -111,6 +111,10 @@ ifdef CONFIG_MSM_ULTRASOUND
 USF_OBJS += usf.o usfcdev.o q6usm.o
 endif
 
+ifdef CONFIG_MSM_CSPL
+	Q6_OBJS += msm-cirrus-playback.o
+endif
+
 LINUX_INC +=	-Iinclude/linux
 
 INCS +=		$(COMMON_INC) \
@@ -119,15 +123,7 @@ INCS +=		$(COMMON_INC) \
 EXTRA_CFLAGS += $(INCS)
 
 
-CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
-		-DANI_LITTLE_BIT_ENDIAN \
-		-DDOT11F_LITTLE_ENDIAN_HOST \
-		-DANI_COMPILER_TYPE_GCC \
-		-DANI_OS_TYPE_ANDROID=6 \
-		-DPTT_SOCK_SVC_ENABLE \
-		-Wall\
-		-Werror\
-		-D__linux__
+CDEFINES +=	-Wall -Werror
 
 KBUILD_CPPFLAGS += $(CDEFINES)
 
