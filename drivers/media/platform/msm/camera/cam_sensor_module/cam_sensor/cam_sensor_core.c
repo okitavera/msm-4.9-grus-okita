@@ -20,6 +20,9 @@
 #include "cam_packet_util.h"
 
 
+uint16_t g_sid;
+uint32_t g_operation_mode;
+
 static void cam_sensor_update_req_mgr(
 	struct cam_sensor_ctrl_t *s_ctrl,
 	struct cam_packet *csl_packet)
@@ -705,6 +708,8 @@ int32_t cam_sensor_driver_cmd(struct cam_sensor_ctrl_t *s_ctrl,
 			goto release_mutex;
 		}
 
+		g_operation_mode = sensor_acq_dev.operation_mode;
+
 		bridge_params.session_hdl = sensor_acq_dev.session_handle;
 		bridge_params.ops = &s_ctrl->bridge_intf.ops;
 		bridge_params.v4l2_sub_dev_flag = 0;
@@ -923,7 +928,10 @@ int cam_sensor_publish_dev_info(struct cam_req_mgr_device_info *info)
 
 	info->dev_id = CAM_REQ_MGR_DEVICE_SENSOR;
 	strlcpy(info->name, CAM_SENSOR_NAME, sizeof(info->name));
-	info->p_delay = 2;
+	if (g_sid == 0x5a && g_operation_mode == 0x8006)
+		info->p_delay = 0;
+	else
+		info->p_delay = 2;
 	info->trigger = CAM_TRIGGER_POINT_SOF;
 
 	return rc;
@@ -985,6 +993,8 @@ int cam_sensor_power_up(struct cam_sensor_ctrl_t *s_ctrl)
 
 	power_info = &s_ctrl->sensordata->power_info;
 	slave_info = &(s_ctrl->sensordata->slave_info);
+
+	g_sid = s_ctrl->sensordata->slave_info.sensor_slave_addr;
 
 	if (!power_info || !slave_info) {
 		CAM_ERR(CAM_SENSOR, "failed: %pK %pK", power_info, slave_info);
