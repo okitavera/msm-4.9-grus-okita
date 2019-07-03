@@ -334,6 +334,7 @@ struct cam_req_mgr_core_link {
 	bool                                 frame_skip_flag;
 	bool                                 sync_link_sof_skip;
 	int32_t                              open_req_cnt;
+	int64_t				     sync_trigger_frame_id;
 };
 
 /**
