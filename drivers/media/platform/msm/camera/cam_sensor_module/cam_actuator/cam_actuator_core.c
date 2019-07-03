@@ -115,6 +115,11 @@ static int32_t cam_actuator_power_up(struct cam_actuator_ctrl_t *a_ctrl)
 		return rc;
 	}
 
+#ifdef CONFIG_USE_BU64748
+	/* VREG needs some delay to power up */
+	usleep_range(6000, 6050);
+#endif
+
 	rc = camera_io_init(&a_ctrl->io_master_info);
 	if (rc < 0)
 		CAM_ERR(CAM_ACTUATOR, "cci init failed: rc: %d", rc);
