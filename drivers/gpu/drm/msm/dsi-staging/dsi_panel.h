@@ -28,6 +28,7 @@
 #include "dsi_clk.h"
 #include "dsi_pwr.h"
 #include "msm_drv.h"
+#include "dsi_panel_mi.h"
 
 #define MAX_BL_LEVEL 4096
 #define MAX_BL_SCALE_LEVEL 1024
