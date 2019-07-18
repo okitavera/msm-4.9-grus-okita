@@ -34,7 +34,6 @@ enum MODE_CMD {
 	RESET_MODE,
 };
 
-
 enum  MODE_TYPE {
 	Touch_Game_Mode        = 0,
 	Touch_Active_MODE      = 1,
@@ -44,7 +43,11 @@ enum  MODE_TYPE {
 	Touch_Wgh_Max          = 5,
 	Touch_Wgh_Step         = 6,
 	Touch_Edge_Filter      = 7,
-	Touch_Mode_NUM         = 8,
+	Touch_Panel_Orientation = 8,
+	Touch_Report_Rate      = 9,
+	Touch_Fod_Enable       = 10,
+	Touch_Aod_Enable       = 11,
+	Touch_Mode_NUM         = 12,
 };
 
 struct xiaomi_touch_interface {
@@ -54,6 +57,8 @@ struct xiaomi_touch_interface {
 	int (*getModeValue)(int Mode, int value_type);
 	int (*getModeAll)(int Mode, int *modevalue);
 	int (*resetMode)(int Mode);
+	int (*p_sensor_read)(void);
+	int (*p_sensor_write)(int on);
 	int (*palm_sensor_read)(void);
 	int (*palm_sensor_write)(int on);
 	int (*pocket_read)(void);
@@ -67,6 +72,7 @@ struct xiaomi_touch {
 	struct attribute_group attrs;
 	struct mutex  mutex;
 	struct mutex  palm_mutex;
+	struct mutex  psensor_mutex;
 	struct mutex  pocket_mutex;
 	wait_queue_head_t 	wait_queue;
 };
@@ -76,6 +82,8 @@ struct xiaomi_touch_pdata{
 	struct xiaomi_touch_interface *touch_data;
 	int palm_value;
 	bool palm_changed;
+	int psensor_value;
+	bool psensor_changed;
 	int pocket_value;
 	bool pocket_changed;
 	const char *name;
@@ -88,6 +96,8 @@ extern struct class *get_xiaomi_touch_class(void);
 extern struct device *get_xiaomi_touch_dev(void);
 
 extern int update_palm_sensor_value(int value);
+
+extern int update_p_sensor_value(int value);
 
 extern int update_pocket_value(int value);
 

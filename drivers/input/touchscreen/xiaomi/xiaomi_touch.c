@@ -81,7 +81,7 @@ static long xiaomi_touch_dev_ioctl(struct file *file, unsigned int cmd,
 		break;
 	default:
 		pr_err("%s don't support mode\n", __func__);
-		ret = -1;
+		ret = -EINVAL;
 		break;
 	}
 
@@ -158,10 +158,12 @@ int xiaomitouch_register_modedata(struct xiaomi_touch_interface *data)
 
 	touch_data->setModeValue = data->setModeValue;
 	touch_data->getModeValue = data->getModeValue;
-	touch_data->resetMode = data->resetMode;
+	touch_data->resetMode= data->resetMode;
 	touch_data->getModeAll = data->getModeAll;
 	touch_data->palm_sensor_read = data->palm_sensor_read;
 	touch_data->palm_sensor_write = data->palm_sensor_write;
+	touch_data->p_sensor_read = data->p_sensor_read;
+	touch_data->p_sensor_write = data->p_sensor_write;
 	touch_data->pocket_read = data->pocket_read;
 	touch_data->pocket_write = data->pocket_write;
 
@@ -217,6 +219,61 @@ struct device_attribute *attr, const char *buf, size_t count)
 
 	if (pdata->touch_data->palm_sensor_write)
 		pdata->touch_data->palm_sensor_write(!!input);
+	else {
+		pr_err("%s has not implement\n", __func__);
+	}
+	pr_info("%s value:%d\n", __func__, !!input);
+
+	return count;
+}
+
+int update_p_sensor_value(int value)
+{
+	struct xiaomi_touch *dev = NULL;
+
+	mutex_lock(&xiaomi_touch_dev.psensor_mutex);
+
+	if (!touch_pdata) {
+		mutex_unlock(&xiaomi_touch_dev.psensor_mutex);
+		return -ENODEV;
+	}
+
+	dev = touch_pdata->device;
+
+	if (value != touch_pdata->psensor_value) {
+		pr_info("%s value:%d\n", __func__, value);
+		touch_pdata->psensor_value = value;
+		touch_pdata->psensor_changed = true;
+		wake_up(&dev->wait_queue);
+	}
+
+	mutex_unlock(&xiaomi_touch_dev.psensor_mutex);
+	return 0;
+}
+
+static ssize_t p_sensor_show(struct device *dev,
+struct device_attribute *attr, char *buf)
+{
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+	struct xiaomi_touch *touch_dev = pdata->device;
+
+	wait_event_interruptible(touch_dev->wait_queue, pdata->psensor_changed);
+	pdata->psensor_changed = false;
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", pdata->psensor_value);
+}
+
+static ssize_t p_sensor_store(struct device *dev,
+struct device_attribute *attr, const char *buf, size_t count)
+{
+	unsigned int input;
+	struct xiaomi_touch_pdata *pdata = dev_get_drvdata(dev);
+
+	if (sscanf(buf, "%d", &input) < 0)
+			return -EINVAL;
+
+	if (pdata->touch_data->p_sensor_write)
+		pdata->touch_data->p_sensor_write(!!input);
 	else {
 		pr_err("%s has not implement\n", __func__);
 	}
@@ -283,11 +340,15 @@ struct device_attribute *attr, const char *buf, size_t count)
 static DEVICE_ATTR(palm_sensor, (S_IRUGO | S_IWUSR | S_IWGRP),
 		   palm_sensor_show, palm_sensor_store);
 
+static DEVICE_ATTR(p_sensor, (S_IRUGO | S_IWUSR | S_IWGRP),
+		   p_sensor_show, p_sensor_store);
+
 static DEVICE_ATTR(pocket_touch, (S_IRUGO | S_IWUSR | S_IWGRP),
 		   pocket_show, pocket_store);
 
 static struct attribute *touch_attr_group[] = {
 	&dev_attr_palm_sensor.attr,
+	&dev_attr_p_sensor.attr,
 	&dev_attr_pocket_touch.attr,
 	NULL,
 };

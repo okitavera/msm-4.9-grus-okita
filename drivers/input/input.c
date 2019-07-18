@@ -31,6 +31,9 @@
 #ifdef CONFIG_LAST_TOUCH_EVENTS
 #include <linux/rtc.h>
 #endif
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+#include <linux/input/touch_common_info.h>
+#endif
 #include "input-compat.h"
 
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@suse.cz>");
@@ -53,6 +56,9 @@ static LIST_HEAD(input_handler_list);
 static DEFINE_MUTEX(input_mutex);
 static const struct input_value input_value_sync = { EV_SYN, SYN_REPORT, 1 };
 
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+static struct touch_event_info *touch_info;
+#endif
 
 #ifdef CONFIG_LAST_TOUCH_EVENTS
 static int input_device_is_touch(struct input_dev *input_dev)
@@ -1376,6 +1382,47 @@ static const struct file_operations input_last_touch_events_fileops = {
 	.llseek		= seq_lseek,
 	.release	= seq_release,
 };
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+#define MAX_CLICK_SIZE 30
+static ssize_t input_touch_count_read(struct file *file, char __user *buf, size_t count, loff_t *pos)
+{
+	char tmp[MAX_CLICK_SIZE];
+
+	if (*pos != 0)
+		return 0;
+	if (touch_info == NULL)
+		return -EINVAL;
+	snprintf(tmp, MAX_CLICK_SIZE, "%llu\n", touch_info->click_num);
+	if (copy_to_user(buf, tmp, strlen(tmp))) {
+		return -EFAULT;
+	}
+	*pos += strlen(tmp);
+
+	return strlen(tmp);
+}
+
+static ssize_t input_touch_count_write(struct file *file, const char __user *buf, size_t count, loff_t *pos)
+{
+	char tmp[MAX_CLICK_SIZE];
+
+	if (count > MAX_CLICK_SIZE || (touch_info) == NULL)
+		return -EINVAL;
+	if (copy_from_user(tmp, buf, count)) {
+		return -EFAULT;
+	}
+
+	if (sscanf(tmp, "%llu\n", &touch_info->click_num) != 1)
+		return -EINVAL;
+	else {
+		return count;
+	}
+}
+
+static const struct file_operations input_touch_count_fileops = {
+	.read		= input_touch_count_read,
+	.write		= input_touch_count_write,
+};
+#endif
 #endif
 
 static int __init input_proc_init(void)
@@ -1400,10 +1447,19 @@ static int __init input_proc_init(void)
 				&input_last_touch_events_fileops);
 	if (!entry)
 		goto fail3;
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+	entry = proc_create("touch_count", S_IWUSR | S_IRUSR, proc_bus_input_dir,
+				&input_touch_count_fileops);
+	if (!entry)
+		goto fail4;
+#endif
 #endif
 
 	return 0;
 #ifdef CONFIG_LAST_TOUCH_EVENTS
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+ fail4: remove_proc_entry("last_touch_events", proc_bus_input_dir);
+#endif
  fail3: remove_proc_entry("handlers", proc_bus_input_dir);
 #endif
  fail2:	remove_proc_entry("devices", proc_bus_input_dir);
@@ -1414,6 +1470,9 @@ static int __init input_proc_init(void)
 static void input_proc_exit(void)
 {
 #ifdef CONFIG_LAST_TOUCH_EVENTS
+#ifdef CONFIG_TOUCH_COUNT_DUMP
+	remove_proc_entry("touch_count", proc_bus_input_dir);
+#endif
 	remove_proc_entry("last_touch_events", proc_bus_input_dir);
 #endif
 	remove_proc_entry("devices", proc_bus_input_dir);
