@@ -255,6 +255,7 @@ struct sde_encoder_irq {
  * @enc_spinlock:	Virtual-Encoder-Wide Spin Lock for IRQ purposes
  * @enable_state:	Enable state tracking
  * @vblank_refcount:	Reference count of vblank request
+ * @wbirq_refcount:	Reference count of wb irq request
  * @vsync_cnt:		Vsync count for the physical encoder
  * @underrun_cnt:	Underrun count for the physical encoder
  * @pending_kickoff_cnt:	Atomic counter tracking the number of kickoffs
@@ -266,6 +267,7 @@ struct sde_encoder_irq {
  * @pending_retire_fence_cnt:   Atomic counter tracking the pending retire
  *                              fences that have to be signalled.
  * @pending_kickoff_wq:		Wait queue for blocking until kickoff completes
+ * @ctlstart_timeout:		Indicates if ctl start timeout occurred
  * @irq:			IRQ tracking structures
  * @cont_splash_single_flush	Variable to check if single flush is enabled.
  * @cont_splash_settings	Variable to store continuous splash settings.
@@ -293,12 +295,14 @@ struct sde_encoder_phys {
 	enum sde_enc_enable_state enable_state;
 	struct mutex *vblank_ctl_lock;
 	atomic_t vblank_refcount;
+	atomic_t wbirq_refcount;
 	atomic_t vsync_cnt;
 	atomic_t underrun_cnt;
 	atomic_t pending_ctlstart_cnt;
 	atomic_t pending_kickoff_cnt;
 	atomic_t pending_retire_fence_cnt;
 	wait_queue_head_t pending_kickoff_wq;
+	atomic_t ctlstart_timeout;
 	struct sde_encoder_irq irq[INTR_IDX_MAX];
 	u32 cont_splash_single_flush;
 	bool cont_splash_settings;

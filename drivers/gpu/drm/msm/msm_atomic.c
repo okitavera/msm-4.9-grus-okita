@@ -50,6 +50,7 @@ int msm_drm_register_client(struct notifier_block *nb)
 	return blocking_notifier_chain_register(&msm_drm_notifier_list,
 						nb);
 }
+EXPORT_SYMBOL(msm_drm_register_client);
 
 /**
  * msm_drm_unregister_client - unregister a client notifier
@@ -63,6 +64,7 @@ int msm_drm_unregister_client(struct notifier_block *nb)
 	return blocking_notifier_chain_unregister(&msm_drm_notifier_list,
 						  nb);
 }
+EXPORT_SYMBOL(msm_drm_unregister_client);
 
 /**
  * msm_drm_notifier_call_chain - notify clients of drm_events
@@ -197,7 +199,12 @@ static void msm_atomic_wait_for_commit_done(
 		if (old_state->legacy_cursor_update)
 			continue;
 
+		if (drm_crtc_vblank_get(crtc))
+			continue;
+
 		kms->funcs->wait_for_crtc_commit_done(kms, crtc);
+
+		drm_crtc_vblank_put(crtc);
 	}
 }
 
