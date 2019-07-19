@@ -1196,6 +1196,11 @@ int dsi_display_set_power(struct drm_connector *connector,
 
 	g_notify_data.data = &event;
 
+	if (dev->pre_state != SDE_MODE_DPMS_LP1 &&
+		dev->pre_state != SDE_MODE_DPMS_LP2)
+		goto done;
+
+	drm_notifier_call_chain(DRM_EARLY_EVENT_BLANK, &g_notify_data);
 	switch (power_mode) {
 	case SDE_MODE_DPMS_LP1:
 		rc = dsi_panel_set_lp1(display->panel);
@@ -1204,14 +1209,12 @@ int dsi_display_set_power(struct drm_connector *connector,
 		rc = dsi_panel_set_lp2(display->panel);
 		break;
 	default:
-		if (dev->pre_state != SDE_MODE_DPMS_LP1 &&
-					dev->pre_state != SDE_MODE_DPMS_LP2)
-			break;
-		drm_notifier_call_chain(DRM_EARLY_EVENT_BLANK, &g_notify_data);
 		rc = dsi_panel_set_nolp(display->panel);
-		drm_notifier_call_chain(DRM_EVENT_BLANK, &g_notify_data);
 		break;
 	}
+	drm_notifier_call_chain(DRM_EVENT_BLANK, &g_notify_data);
+
+done:
 	dev->pre_state = power_mode;
 
 	return rc;
