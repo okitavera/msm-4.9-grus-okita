@@ -3647,11 +3647,20 @@ ssize_t mipi_reg_read(char *buf)
 }
 
 #if DSI_READ_WRITE_PANEL_DEBUG
+/* Below macro comes from a typical read cmds:
+   01 01 06 01 00 01 00 00 01 0a
+   */
+#define MIN_MIPI_REG_WRITE_SIZE (30)
 static ssize_t mipi_reg_procfs_write(struct file *file, const char __user *buf,
 	size_t count, loff_t *offp)
 {
 	int retval = 0;
 	char *input = NULL;
+
+	if (count < MIN_MIPI_REG_WRITE_SIZE) {
+		pr_err("expected >%d bytes info mipi_reg\n", MIN_MIPI_REG_WRITE_SIZE);
+		return count;
+	}
 
 	input = kmalloc(count, GFP_KERNEL);
 	if (!input) {
@@ -4477,6 +4486,10 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 	case DISPPARAM_CABC_OFF:
 		pr_info("cabcoff\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_CABCOFF);
+		break;
+	case DISPPARAM_DIMMING_OFF:
+		pr_info("dimmingoff\n");
+		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_DIMMINGOFF);
 		break;
 	case DISPPARAM_DIMMING:
 		pr_info("dimmingon\n");
