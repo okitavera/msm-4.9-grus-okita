@@ -734,6 +734,7 @@ int dsi_panel_set_doze_backlight(struct dsi_display *display, u32 bl_lvl)
 			pr_err("[%s] failed to send DSI_CMD_SET_DOZE_LBM cmd, rc=%d\n",
 				   panel->name, rc);
 		panel->in_aod = true;
+		panel->skip_dimmingon = STATE_DIM_BLOCK;
 	} else if (bl_lvl <= panel->doze_backlight_threshold && bl_lvl > 0) {
 		drm_dev->doze_brightness = DOZE_BRIGHTNESS_LBM;
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DOZE_LBM);
@@ -741,6 +742,7 @@ int dsi_panel_set_doze_backlight(struct dsi_display *display, u32 bl_lvl)
 			pr_err("[%s] failed to send DSI_CMD_SET_DOZE_HBM cmd, rc=%d\n",
 			       panel->name, rc);
 		panel->in_aod = true;
+		panel->skip_dimmingon = STATE_DIM_BLOCK;
 	} else {
 		drm_dev->doze_brightness = DOZE_BRIGHTNESS_INVALID;
 	}
@@ -4263,6 +4265,7 @@ int dsi_panel_set_nolp(struct dsi_panel *panel)
 		if (rc)
 			pr_err("[%s] failed to send DSI_CMD_SET_NOLP cmd, rc=%d\n",
 			       panel->name, rc);
+		panel->skip_dimmingon = STATE_NONE;
 	}
 
 	panel->in_aod = false;
@@ -4616,12 +4619,13 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 						panel->name, rc);
 			display->drm_dev->doze_brightness = DOZE_BRIGHTNESS_HBM;
 			panel->in_aod = true;
-			panel->skip_dimmingon = STATE_NONE;
+			panel->skip_dimmingon = STATE_DIM_BLOCK;
 		}
 		break;
 	case DISPPARAM_HBM_OFF:
 		pr_info("hbm off\n");
 		rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DISP_HBM_OFF);
+		panel->skip_dimmingon = STATE_NONE;
 		break;
 	default:
 		break;
@@ -4649,12 +4653,14 @@ static int panel_disp_param_send_lock(struct dsi_panel *panel, int param)
 		if (panel->in_aod) {
 			pr_info("doze hbm On\n");
 			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DOZE_HBM);
+			panel->skip_dimmingon = STATE_DIM_BLOCK;
 		}
 		break;
 	case DISPPARAM_DOZE_BRIGHTNESS_LBM:
 		if (panel->in_aod) {
 			pr_info("doze lbm On\n");
 			rc = dsi_panel_tx_cmd_set(panel, DSI_CMD_SET_DOZE_LBM);
+			panel->skip_dimmingon = STATE_DIM_BLOCK;
 		}
 		break;
 	case DISPPARAM_DOZE_OFF:
