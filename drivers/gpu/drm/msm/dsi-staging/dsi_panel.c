@@ -3527,10 +3527,8 @@ static ssize_t mdss_fb_set_ea_elvss_off_treshold(struct device *dev,
 {
 	u32 ea_elvss_off_treshold;
 
-	if (sscanf(buf, "%d", &ea_elvss_off_treshold) != -1) {
-		pr_err("sccanf buf error!\n");
+	if (sscanf(buf, "%d", &ea_elvss_off_treshold) < 1)
 		return len;
-	}
 
 	set_ea_elvss_off_treshold(ea_elvss_off_treshold);
 	return len;
@@ -3552,8 +3550,7 @@ static ssize_t mdss_fb_set_ea_min(struct device *dev,
 {
         u32 ea_min;
 
-        if (sscanf(buf, "%d", &ea_min) != -1) {
-                pr_err("sccanf buf error!\n");
+        if (sscanf(buf, "%d", &ea_min) < 1) {
                 return len; 
         }    
 
@@ -3565,10 +3562,7 @@ static ssize_t mdss_fb_get_ea_min(struct device *dev,
                 struct device_attribute *attr, char *buf)
 {
         int ret;
-        u32 ea_min = get_ea_fb_min();
-
-        ret = scnprintf(buf, PAGE_SIZE, "%d\n", ea_min);
-
+        ret = scnprintf(buf, PAGE_SIZE, "%d\n", get_ea_fb_min());
         return ret;
 }
 
