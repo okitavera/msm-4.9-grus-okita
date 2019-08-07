@@ -883,7 +883,7 @@ boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
 	unsigned threshold_idx;
 	int boost_pct;
 
-	if (!strcmp(css->cgroup->kn->name, "top-app"))
+	if (!strcmp(css->cgroup->kn->name, "top-app") && (boost < 1))
 		boost = 1;
 
 	if (boost < -100 || boost > 100)
