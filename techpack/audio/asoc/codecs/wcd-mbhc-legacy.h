@@ -1,4 +1,5 @@
 /* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -22,5 +23,7 @@ static inline void wcd_mbhc_legacy_init(struct wcd_mbhc *mbhc)
 {
 }
 #endif
+
+void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,enum wcd_mbhc_plug_type plug_type);
 
 #endif /* __WCD_MBHC_LEGACY_H__ */
