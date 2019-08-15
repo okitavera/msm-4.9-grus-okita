@@ -11,6 +11,7 @@ menuconfig INPUT_TOUCHSCREEN
 
 if INPUT_TOUCHSCREEN
 
+source "drivers/input/touchscreen/tp_goodix_driver/Kconfig"
 source "drivers/input/touchscreen/synaptics_dsx_2.6/Kconfig"
 
 config TOUCHSCREEN_PROPERTIES
