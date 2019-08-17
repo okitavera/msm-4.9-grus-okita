@@ -163,7 +163,7 @@ static bool get_dload_mode(void)
 	return dload_mode_enabled;
 }
 
-static void __maybe_unused enable_emergency_dload_mode(void)
+static void enable_emergency_dload_mode(void)
 {
 	int ret;
 
@@ -308,11 +308,6 @@ static void msm_restart_prepare(const char *cmd)
 	else
 		qpnp_pon_system_pwr_off(PON_POWER_OFF_HARD_RESET);
 
-	if (in_panic) {
-		qpnp_pon_set_restart_reason(PON_RESTART_REASON_OEM_MIN + 0x01);
-		cmd = NULL;
-	}
-
 	if (cmd != NULL) {
 		if (!strncmp(cmd, "bootloader", 10)) {
 			qpnp_pon_set_restart_reason(
@@ -363,6 +358,12 @@ static void msm_restart_prepare(const char *cmd)
 				__raw_writel(0x6f656d00 | (code & 0xff),
 					     restart_reason);
 			}
+		} else if (!strncmp(cmd, "edl", 3)) {
+			/* Hardcoded for security reason */
+			if (1)
+				__raw_writel(0x77665501, restart_reason);
+			else
+				enable_emergency_dload_mode();
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
