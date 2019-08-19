@@ -124,10 +124,23 @@ $(obj)/configs.o: $(obj)/config_data.h
 # config_data.h contains the same information as ikconfig.h but gzipped.
 # Info from config_data can be extracted from /proc/config*
 targets += config_data.gz
+# Creating a fake /proc/config.gz if KBUILD_FAKECONFIG is defined
+ifeq ($(KBUILD_FAKECONFIG),1)
+targets += .fakeconfig
+$(objtree)/.fakeconfig: $(KCONFIG_CONFIG) FORCE
+	@$(kecho) '  Creating $(objtree)/.fakeconfig from $(KCONFIG_CONFIG) and $(srctree)/.fakeconfig'
+	@(sort $(KCONFIG_CONFIG) $(srctree)/.fakeconfig \
+		| uniq | grep -o '^[^#]*' > $(objtree)/.fakeconfig)
+$(obj)/config_data.gz: $(objtree)/.fakeconfig FORCE
+	$(call if_changed,gzip)
+
+      filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/basic/bin2c; echo "MAGIC_END;")
+else
 $(obj)/config_data.gz: $(KCONFIG_CONFIG) FORCE
 	$(call if_changed,gzip)
 
       filechk_ikconfiggz = (echo "static const char kernel_config_data[] __used = MAGIC_START"; cat $< | scripts/basic/bin2c; echo "MAGIC_END;")
+endif
 targets += config_data.h
 $(obj)/config_data.h: $(obj)/config_data.gz FORCE
 	$(call filechk,ikconfiggz)
