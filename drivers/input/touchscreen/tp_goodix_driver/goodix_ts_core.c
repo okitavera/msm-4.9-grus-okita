@@ -2422,8 +2422,6 @@ static int goodix_ts_probe(struct platform_device *pdev)
 	core_data->tp_selftest_proc =
 		proc_create("tp_selftest", 0644, NULL, &gtp_selftest_ops);
 
-	core_data->fod_status = 1;
-
 #ifdef CONFIG_TOUCHSCREEN_GOODIX_DEBUG_FS
 	core_data->debugfs = debugfs_create_dir("tp_debug", NULL);
 	if (core_data->debugfs) {
