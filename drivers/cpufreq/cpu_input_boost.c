@@ -28,10 +28,9 @@ module_param(input_boost_freq_hp, uint, 0644);
 module_param(input_boost_duration, short, 0644);
 
 /* Available bits for boost_drv state */
-#define SCREEN_AWAKE		BIT(0)
+#define SCREEN_AWAKE	BIT(0)
 #define INPUT_BOOST		BIT(1)
-#define WAKE_BOOST		BIT(2)
-#define MAX_BOOST		BIT(3)
+#define MAX_BOOST		BIT(2)
 
 struct boost_drv {
 	struct workqueue_struct *wq;
@@ -96,7 +95,7 @@ static void unboost_all_cpus(struct boost_drv *b)
 		!cancel_delayed_work_sync(&b->max_unboost))
 		return;
 
-	clear_boost_bit(b, INPUT_BOOST | WAKE_BOOST | MAX_BOOST);
+	clear_boost_bit(b, INPUT_BOOST | MAX_BOOST);
 	update_online_cpu_policy();
 }
 
@@ -211,7 +210,7 @@ static void max_unboost_worker(struct work_struct *work)
 	struct boost_drv *b =
 		container_of(to_delayed_work(work), typeof(*b), max_unboost);
 
-	clear_boost_bit(b, WAKE_BOOST | MAX_BOOST);
+	clear_boost_bit(b, MAX_BOOST);
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
@@ -266,11 +265,8 @@ static int msm_drm_notifier_cb(struct notifier_block *nb,
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
 
-	/* Boost when the screen turns on and unboost when it turns off */
-	if (*blank == MSM_DRM_BLANK_UNBLANK) {
-		set_boost_bit(b, SCREEN_AWAKE);
-		__cpu_input_boost_kick_max(b, CONFIG_WAKE_BOOST_DURATION_MS);
-	} else {
+	/* unboost when it turns off */
+	if (*blank != MSM_DRM_BLANK_UNBLANK) {
 		clear_boost_bit(b, SCREEN_AWAKE);
 		unboost_all_cpus(b);
 	}
