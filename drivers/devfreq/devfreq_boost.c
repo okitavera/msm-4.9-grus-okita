@@ -128,20 +128,6 @@ static unsigned long devfreq_abs_min_freq(struct boost_dev *b)
 	return b->abs_min_freq;
 }
 
-static void devfreq_disable_boosting(struct df_boost_drv *d, bool disable)
-{
-	int i;
-
-	for (i = 0; i < DEVFREQ_MAX; i++) {
-		struct boost_dev *b = d->devices + i;
-		unsigned long flags;
-
-		spin_lock_irqsave(&b->lock, flags);
-		b->disable = disable;
-		spin_unlock_irqrestore(&b->lock, flags);
-	}
-}
-
 static void devfreq_unboost_all(struct df_boost_drv *d)
 {
 	int i;
@@ -247,24 +233,14 @@ static int msm_drm_notifier_cb(struct notifier_block *nb,
 	struct df_boost_drv *d = container_of(nb, typeof(*d), msm_drm_notif);
 	struct msm_drm_notifier *evdata = data;
 	int *blank = evdata->data;
-	bool screen_awake;
 
 	/* Parse framebuffer blank events as soon as they occur */
 	if (action != MSM_DRM_EARLY_EVENT_BLANK)
 		return NOTIFY_OK;
 
-	/* Boost when the screen turns on and unboost when it turns off */
-	screen_awake = *blank == MSM_DRM_BLANK_UNBLANK;
-	devfreq_disable_boosting(d, !screen_awake);
-	if (screen_awake) {
-		int i;
-
-		for (i = 0; i < DEVFREQ_MAX; i++)
-			__devfreq_boost_kick_max(d->devices + i,
-				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
-	} else {
+	/* unboost when it turns off */
+	if (*blank != MSM_DRM_BLANK_UNBLANK)
 		devfreq_unboost_all(d);
-	}
 
 	return NOTIFY_OK;
 }
