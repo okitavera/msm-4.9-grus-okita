@@ -1036,7 +1036,6 @@ static void sugov_limits(struct cpufreq_policy *policy)
 	struct sugov_policy *sg_policy = policy->governor_data;
 	unsigned long flags;
 	unsigned int ret;
-	int cpu;
 
 	if (!policy->fast_switch_enabled) {
 		mutex_lock(&sg_policy->work_lock);
@@ -1056,9 +1055,9 @@ static void sugov_limits(struct cpufreq_policy *policy)
 		else if (policy->min > policy->cur)
 			ret = cpufreq_driver_fast_switch(policy, policy->min);
 
-		if (ret && policy->cur != ret) {
+		if (ret && policy->cur != ret)
 			policy->cur = ret;
-		}
+
 		raw_spin_unlock_irqrestore(&sg_policy->update_lock, flags);
 	}
 
