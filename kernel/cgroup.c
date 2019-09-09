@@ -2961,10 +2961,8 @@ static ssize_t __cgroup_procs_write(struct kernfs_open_file *of, char *buf,
 		ret = cgroup_attach_task(cgrp, tsk, threadgroup);
 
 	/* This covers boosting for app launches and app transitions */
-	if (!ret && !threadgroup &&
-	    !strcmp(of->kn->parent->name, "top-app") &&
-	    task_is_zygote(tsk->parent))
-		cpu_input_boost_kick_max(1000);
+	if (!ret && !strcmp(of->kn->parent->name, "top-app"))
+		cpu_input_boost_kick_max(500);
 
 	put_task_struct(tsk);
 	goto out_unlock_threadgroup;
