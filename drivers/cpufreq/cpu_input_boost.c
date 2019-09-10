@@ -32,6 +32,9 @@ module_param(input_boost_duration, short, 0644);
 #define INPUT_BOOST		BIT(1)
 #define MAX_BOOST		BIT(2)
 
+// Minimal touch threshold to boost (in ms)
+#define TOUCH_THRESHOLD_MS 300
+
 struct boost_drv {
 	struct workqueue_struct *wq;
 	struct work_struct input_boost;
@@ -247,17 +250,34 @@ static int msm_drm_notifier_cb(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
+static unsigned long finger_down_time;
 static void cpu_input_boost_input_event(struct input_handle *handle,
 					unsigned int type, unsigned int code,
 					int value)
 {
 	struct boost_drv *b = handle->handler->private;
 	u32 state;
+	unsigned long touch_now;
+	unsigned long touch_intval;
 
 	state = get_boost_state(b);
-
 	if (!(state & SCREEN_AWAKE))
 		return;
+
+	if (code == BTN_TOUCH) {
+		finger_down_time = value ? ktime_to_ms(ktime_get()) : 0;
+		return;
+	}
+
+	if (type == EV_ABS) {
+		touch_now = ktime_to_ms(ktime_get());
+		if (touch_now < finger_down_time)
+			return; // wrong timing ? hmm, quit.
+
+		touch_intval = touch_now - finger_down_time;
+		if (touch_intval < TOUCH_THRESHOLD_MS)
+			return; // not enough time, don't boost
+	}
 
 	queue_work(b->wq, &b->input_boost);
 }
