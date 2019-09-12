@@ -1408,17 +1408,6 @@ config DYNAMIC_STUNE_BOOST
 
 	  If unsure, say N.
 
-if DYNAMIC_STUNE_BOOST
-
-config DYNAMIC_STUNE_BOOST_VALUE
-	int "Dynamic SchedTune default boost value"
-	default "10"
-	depends on DYNAMIC_STUNE_BOOST
-	help
-	  Default boost value for Dynamic SchedTune in percent.
-
-endif
-
 config DEFAULT_USE_ENERGY_AWARE
 	bool "Default to enabling the Energy Aware Scheduler feature"
 	default n
