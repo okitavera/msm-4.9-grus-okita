@@ -721,10 +721,8 @@ static void __init smp_build_mpidr_hash(void)
  */
 struct proc_info_list *lookup_processor(u32 midr)
 {
-	struct proc_info_list *list;
+	struct proc_info_list *list = lookup_processor_type(midr);
 
-	arm_init_bp_hardening();
-	list = lookup_processor_type(midr);
 	if (!list) {
 		pr_err("CPU%u: configuration botched (ID %08x), CPU halted\n",
 		       smp_processor_id(), midr);
@@ -737,9 +735,12 @@ struct proc_info_list *lookup_processor(u32 midr)
 
 static void __init setup_processor(void)
 {
-	unsigned int midr = read_cpuid_id();
-	struct proc_info_list *list = lookup_processor(midr);
+	unsigned int midr;
+	struct proc_info_list *list;
 
+	arm_init_bp_hardening();
+	midr = read_cpuid_id();
+	list = lookup_processor(midr);
 	cpu_name = list->cpu_name;
 	__cpu_architecture = __get_cpu_architecture();
 
