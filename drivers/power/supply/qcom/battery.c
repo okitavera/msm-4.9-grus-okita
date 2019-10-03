@@ -114,12 +114,7 @@ static int debug_mask = PR_PARALLEL;
 module_param_named(debug_mask, debug_mask, int, 0600);
 
 #define pl_dbg(chip, reason, fmt, ...)				\
-	do {								\
-		if (debug_mask & (reason))				\
-			pr_info(fmt, ##__VA_ARGS__);	\
-		else							\
-			pr_debug(fmt, ##__VA_ARGS__);		\
-	} while (0)
+			pr_debug(fmt, ##__VA_ARGS__)
 
 #define IS_USBIN(mode)	((mode == POWER_SUPPLY_PL_USBIN_USBIN) \
 			|| (mode == POWER_SUPPLY_PL_USBIN_USBIN_EXT))

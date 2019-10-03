@@ -486,20 +486,10 @@ module_param_named(
 );
 
 #define pr_smb(reason, fmt, ...)				\
-	do {							\
-		if (smbchg_debug_mask & (reason))		\
-			pr_info(fmt, ##__VA_ARGS__);		\
-		else						\
-			pr_debug(fmt, ##__VA_ARGS__);		\
-	} while (0)
+			pr_debug(fmt, ##__VA_ARGS__)
 
 #define pr_smb_rt(reason, fmt, ...)					\
-	do {								\
-		if (smbchg_debug_mask & (reason))			\
-			pr_info_ratelimited(fmt, ##__VA_ARGS__);	\
-		else							\
-			pr_debug(fmt, ##__VA_ARGS__);	\
-	} while (0)
+			pr_debug(fmt, ##__VA_ARGS__)
 
 static int smbchg_read(struct smbchg_chip *chip, u8 *val,
 			u16 addr, int count)
