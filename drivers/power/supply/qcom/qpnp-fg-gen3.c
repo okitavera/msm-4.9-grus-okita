@@ -5524,12 +5524,6 @@ static int fg_parse_dt(struct fg_chip *chip)
 				rc);
 	}
 
-	pr_info("%s: jeita threshold %d, %d, %d, %d\n", __func__,
-						chip->dt.jeita_thresholds[JEITA_COLD],
-						chip->dt.jeita_thresholds[JEITA_COOL],
-						chip->dt.jeita_thresholds[JEITA_WARM],
-						chip->dt.jeita_thresholds[JEITA_HOT]);
-
 	if (of_property_count_elems_of_size(node,
 		"qcom,battery-thermal-coefficients",
 		sizeof(u8)) == BATT_THERM_NUM_COEFFS) {
@@ -5805,17 +5799,6 @@ static void soc_work_fn(struct work_struct *work)
 		pr_err("sram read failed: address=79, rc=%d\n", rc);
 		return;
 	}
-	pr_info("adjust_soc: s %d r %d i %d v %d t %d cc %d m 0x%02x\n",
-			soc,
-			esr_uohms,
-			curr_ua,
-			volt_uv,
-			temp,
-			cycle_count,
-			msoc);
-	pr_info("adjust_soc: 000: %02x, %02x, %02x, %02x\n", buf_top[0], buf_top[1], buf_top[2], buf_top[3]);
-	pr_info("adjust_soc: 019: %02x, %02x, %02x, %02x\n", buf_auto[0], buf_auto[1], buf_auto[2], buf_auto[3]);
-	pr_info("adjust_soc: 079: %02x, %02x, %02x, %02x\n", buf_profile[0], buf_profile[1], buf_profile[2], buf_profile[3]);
 
 	if (temp < 450 && chip->last_batt_temp >= 450) {
 		/* follow the way that fg_notifier_cb use wake lock */
