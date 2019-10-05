@@ -125,8 +125,8 @@ $(obj)/configs.o: $(obj)/config_data.h
 # config_data.h contains the same information as ikconfig.h but gzipped.
 # Info from config_data can be extracted from /proc/config*
 targets += config_data.gz
-# Creating a fake /proc/config.gz if KBUILD_FAKECONFIG is defined
-ifeq ($(KBUILD_FAKECONFIG),1)
+# Creating a fake /proc/config.gz by default
+ifneq ($(KBUILD_FAKECONFIG), 0)
 targets += .fakeconfig
 $(objtree)/.fakeconfig: $(KCONFIG_CONFIG) FORCE
 	@$(kecho) '  Creating $(objtree)/.fakeconfig from $(KCONFIG_CONFIG) and $(srctree)/.fakeconfig'
