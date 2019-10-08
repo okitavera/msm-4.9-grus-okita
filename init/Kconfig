@@ -1456,40 +1456,6 @@ config DYNAMIC_STUNE_BOOST
 
 	  If unsure, say N.
 
-if DYNAMIC_STUNE_BOOST
-
-config IA_SCHEDTUNE_BOOST
-	bool "Input Assisted SchedTune Boost"
-	depends on DYNAMIC_STUNE_BOOST
-	help
-	  This option enable input-event based driver that can boosts
-	  with specific duration and conditions.
-
-	  If unsure, say N.
-
-config DYNAMIC_STUNE_BOOST_VALUE
-	int "Default boost value"
-	default "20"
-	depends on IA_SCHEDTUNE_BOOST
-	help
-	  Default boost value for Dynamic SchedTune (in percent).
-
-config IASB_BOOST_MS
-	int "Default boost interval"
-	default "500"
-	depends on IA_SCHEDTUNE_BOOST
-	help
-	  Default boost interval for Input Assisted SchedTune Boost (in ms)
-
-config IASB_MIN_TOUCH_MS
-	int "Minimal touch duration"
-	default "250"
-	depends on IA_SCHEDTUNE_BOOST
-	help
-	  Minimal touch duration for Input Assisted SchedTune Boost (in ms)
-
-endif
-
 config DEFAULT_USE_ENERGY_AWARE
 	bool "Default to enabling the Energy Aware Scheduler feature"
 	default n
