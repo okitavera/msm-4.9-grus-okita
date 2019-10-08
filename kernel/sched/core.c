@@ -1631,7 +1631,7 @@ static int select_fallback_rq(int cpu, struct task_struct *p, bool allow_iso)
 	}
 
 out:
-	if (state != cpuset) {
+	if ((state != cpuset) && (isolated_candidate != -1)) {
 		/*
 		 * Don't tell them about moving exiting tasks or
 		 * kernel threads (both mm NULL), since they never
