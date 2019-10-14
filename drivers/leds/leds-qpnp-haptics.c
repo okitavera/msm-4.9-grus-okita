@@ -342,7 +342,7 @@ struct hap_chip {
 	u16				last_rate_cfg;
 	int				effect_index;
 	u32				effect_max;
-	u8				(*effect_arry)[HAP_WAVE_SAMP_LEN];
+	u8				(*effect_array)[HAP_WAVE_SAMP_LEN];
 	u32				wave_rep_cnt;
 	u32				wave_s_rep_cnt;
 	u32				wf_samp_len;
@@ -1258,7 +1258,7 @@ static int qpnp_haptics_auto_mode_config(struct hap_chip *chip, int time_ms)
 				}
 				chip->effect_index = index;
 				for (i = 0; i < HAP_WAVE_SAMP_LEN; i++) {
-					wave_samp[i] = (u32)(chip->effect_arry[index][i]);
+					wave_samp[i] = (u32)(chip->effect_array[index][i]);
 				}
 				rc = qpnp_haptics_buffer_config(chip, wave_samp, chip->overdrive);
 				if (rc < 0) {
@@ -1825,7 +1825,7 @@ static ssize_t qpnp_haptics_show_effect_samp(struct device *dev,
 	if (chip->effect_index == -1)
 		return 0;
 	for (i = 0; i < HAP_WAVE_SAMP_LEN; i++) {
-		len = scnprintf(ptr, HAP_STR_SIZE, "%x ", chip->effect_arry[chip->effect_index][i]);
+		len = scnprintf(ptr, HAP_STR_SIZE, "%x ", chip->effect_array[chip->effect_index][i]);
 		ptr += len;
 	}
 	ptr[len] = '\0';
@@ -1850,12 +1850,12 @@ static ssize_t qpnp_haptics_store_effect_samp(struct device *dev,
 		sscanf(buf + pos, "%x%n", &data, &bytes_read) == 1) {
 		/* bit 0 is not used in WF_Sx */
 		wave_samp[i] = data;
-		chip->effect_arry[chip->effect_index][i++] = data;
+		chip->effect_array[chip->effect_index][i++] = data;
 		pos += bytes_read;
 	}
 
 	for (i = pos; i < HAP_WAVE_SAMP_LEN; i++)
-		chip->effect_arry[chip->effect_index][i++] = 0;
+		chip->effect_array[chip->effect_index][i++] = 0;
 
 	rc = qpnp_haptics_buffer_config(chip, wave_samp, chip->overdrive);
 	if (rc < 0) {
@@ -2330,28 +2330,21 @@ static int qpnp_haptics_parse_buffer_dt(struct hap_chip *chip)
 	chip->effect_index = -1;
 	chip->effect_max = 0;
 	rc = of_property_read_u32(node, "qcom,effect-max", &temp);
-	if (!rc) {
+	if (!rc)
 		chip->effect_max = temp;
-		prop = of_find_property(node, "qcom,effect-arry", &temp);
-		if (!prop) {
-				dev_info(&chip->pdev->dev, "effect arry not found");
-			} else if (temp != HAP_WAVE_SAMP_LEN * chip->effect_max) {
-				dev_err(&chip->pdev->dev, "Invalid len of effect arry \n");
-				chip->effect_max = 0;
-				return -EINVAL;
-			} else {
-				chip->effect_arry = (u8 (*)[HAP_WAVE_SAMP_LEN])kmalloc(HAP_WAVE_SAMP_LEN * chip->effect_max, GFP_KERNEL);
-				memcpy(chip->effect_arry, prop->value,
-						HAP_WAVE_SAMP_LEN *  chip->effect_max);
-				for (temp = 0; temp < chip->effect_max; temp++) {
-					pr_info("effect_arry:%u: %u,%u,%u,%u,%u,%u,%u,%u\n",
-							temp, chip->effect_arry[temp][0], chip->effect_arry[temp][1],
-							chip->effect_arry[temp][2], chip->effect_arry[temp][3],
-							chip->effect_arry[temp][4], chip->effect_arry[temp][5],
-							chip->effect_arry[temp][6], chip->effect_arry[temp][7]);
-				}
-			}
+
+	prop = of_find_property(node, "qcom,effect-array", &temp);
+	if (prop && (temp == HAP_WAVE_SAMP_LEN * chip->effect_max)) {
+		chip->effect_array = (u8 (*)[HAP_WAVE_SAMP_LEN])
+				kmalloc(HAP_WAVE_SAMP_LEN * chip->effect_max, GFP_KERNEL);
+		memcpy(chip->effect_array, prop->value,
+				HAP_WAVE_SAMP_LEN *  chip->effect_max);
+	} else {
+		dev_err(&chip->pdev->dev, "Invalid effect array");
+		chip->effect_max = 0;
+		return -EINVAL;
 	}
+
 	chip->wave_rep_cnt = WF_REPEAT_MIN;
 	rc = of_property_read_u32(node, "qcom,wave-rep-cnt", &temp);
 	if (!rc) {

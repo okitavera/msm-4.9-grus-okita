@@ -500,7 +500,7 @@
 	qcom,lra-auto-res-mode = "none";
 	qcom,lra-res-cal-period = <4>;
 	qcom,effect-max = <4>;
-	qcom,effect-arry = [3e 3e 2f be 00 00 00 00
+	qcom,effect-array = [3e 3e 2f be 00 00 00 00
 	3e 3e 3e 3f be 88 00 00
 	3e 3e 3e 3f be 88 00 00
 	3f 3f 3f 3f 3f 3f be 88];
