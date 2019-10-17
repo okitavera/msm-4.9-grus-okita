@@ -2497,6 +2497,7 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	cpu = get_cpu();
 
 	__sched_fork(clone_flags, p);
+	cpufreq_task_times_alloc(p);
 	/*
 	 * We mark the process as NEW here. This guarantees that
 	 * nobody will actually run it, and a signal or other external
