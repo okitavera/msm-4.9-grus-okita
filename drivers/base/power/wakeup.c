@@ -70,6 +70,8 @@ static struct wakeup_source deleted_ws = {
 	.lock =  __SPIN_LOCK_UNLOCKED(deleted_ws.lock),
 };
 
+static void wakeup_source_deactivate(struct wakeup_source *ws);
+
 /**
  * wakeup_source_prepare - Prepare a new wakeup source for initialization.
  * @ws: Wakeup source to prepare.
@@ -560,6 +562,12 @@ static void wakeup_source_activate(struct wakeup_source *ws)
  */
 static void wakeup_source_report_event(struct wakeup_source *ws)
 {
+	// fixme!
+	if (!strcmp(ws->name, "NETLINK")) {
+		wakeup_source_deactivate(ws);
+		return;
+	}
+
 	ws->event_count++;
 	/* This is racy, but the counter is approximate anyway. */
 	if (events_check_enabled)
@@ -853,6 +861,12 @@ void pm_print_active_wakeup_sources(void)
 
 	srcuidx = srcu_read_lock(&wakeup_srcu);
 	list_for_each_entry_rcu(ws, &wakeup_sources, entry) {
+		// fixme!
+		if (!strcmp(ws->name, "NETLINK")) {
+			wakeup_source_deactivate(ws);
+			active = 0;
+		}
+
 		if (ws->active) {
 			pr_info("active wakeup source: %s\n", ws->name);
 			active = 1;
