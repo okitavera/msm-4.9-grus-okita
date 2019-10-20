@@ -792,4 +792,13 @@ int sde_connector_get_panel_vfp(struct drm_connector *connector,
  */
 int sde_connector_esd_status(struct drm_connector *connector);
 
+/**
+ * sde_connector_get_panel_vfp - helper to get panel vfp
+ * @connector: pointer to drm connector
+ * @h_active: panel width
+ * @v_active: panel heigth
+ * Returns: v_front_porch on success error-code on failure
+ */
+int sde_connector_get_panel_vfp(struct drm_connector *connector,
+	struct drm_display_mode *mode);
 #endif /* _SDE_CONNECTOR_H_ */

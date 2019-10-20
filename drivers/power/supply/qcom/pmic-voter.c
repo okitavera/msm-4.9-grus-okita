@@ -20,7 +20,7 @@
 
 #include <linux/pmic-voter.h>
 
-#define NUM_MAX_CLIENTS		16
+#define NUM_MAX_CLIENTS		24
 #define DEBUG_FORCE_CLIENT	"DEBUG_FORCE_CLIENT"
 
 static DEFINE_SPINLOCK(votable_list_slock);
@@ -110,6 +110,11 @@ static void vote_min(struct votable *votable, int client_id,
 			*eff_res = votable->votes[i].value;
 			*eff_id = i;
 		}
+	}
+	if (strcmp(votable->name, "FG_WS") != 0) {
+			if(votable->votes[i].enabled)
+				pr_info("%s: val: %d\n", votable->client_strs[i],
+							votable->votes[i].value);
 	}
 	if (*eff_id == -EINVAL)
 		*eff_res = -EINVAL;

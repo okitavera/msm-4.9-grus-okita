@@ -1566,6 +1566,8 @@ static irqreturn_t qpnp_wled_ovp_irq_handler(int irq, void *_wled)
 			QPNP_WLED_FAULT_STATUS(wled->ctrl_base), &fault_sts);
 	if (rc < 0) {
 		pr_err("Error in reading WLED_FAULT_STATUS rc=%d\n", rc);
+		disable_irq_nosync(wled->ovp_irq);
+		wled->ovp_irq_disabled = true;
 		return IRQ_HANDLED;
 	}
 

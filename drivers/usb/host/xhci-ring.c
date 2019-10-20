@@ -70,6 +70,7 @@
 #include "xhci.h"
 #include "xhci-trace.h"
 #include "xhci-mtk.h"
+extern void kick_usbpd_vbus_sm(void);
 
 /*
  * Returns zero if the TRB isn't in this segment, otherwise it returns the DMA
@@ -340,13 +341,25 @@ static int xhci_abort_cmd_ring(struct xhci_hcd *xhci, unsigned long flags)
 	 * that the there are larger problems with the xHC and assert HCRST.
 	 */
 	ret = xhci_handshake_check_state(xhci, &xhci->op_regs->cmd_ring,
-			CMD_RING_RUNNING, 0, 1000 * 1000);
+			CMD_RING_RUNNING, 0, 5 * 1000 * 1000);
 	if (ret < 0) {
-		xhci_err(xhci,
-			 "Stop command ring failed, maybe the host is dead\n");
-		xhci->xhc_state |= XHCI_STATE_DYING;
-		xhci_halt(xhci);
-		return -ESHUTDOWN;
+		/* we are about to kill xhci, give it one more chance */
+		return -1;
+#if 0
+		xhci_write_64(xhci, temp_64 | CMD_RING_ABORT,
+			      &xhci->op_regs->cmd_ring);
+		udelay(1000);
+		ret = xhci_handshake_check_state(xhci, &xhci->op_regs->cmd_ring,
+				     CMD_RING_RUNNING, 0, 3 * 1000 * 1000);
+		if (ret < 0) {
+			xhci_err(xhci, "Stopped the command ring failed, "
+				 "maybe the host is dead\n");
+			xhci->xhc_state |= XHCI_STATE_DYING;
+			xhci_quiesce(xhci);
+			xhci_halt(xhci);
+			return -ESHUTDOWN;
+		}
+#endif
 	}
 	/*
 	 * Writing the CMD_RING_ABORT bit should cause a cmd completion event,

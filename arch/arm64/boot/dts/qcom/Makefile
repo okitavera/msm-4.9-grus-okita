@@ -177,6 +177,8 @@ ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
 		sdm710-pm660a-tasha-codec-cdp-overlay.dtbo \
 		sdm710-aqt1000-cdp-overlay.dtbo \
 		sdm710-pm660a-aqt1000-cdp-overlay.dtbo \
+		grus-sdm710-overlay.dtbo \
+		grus-sdm712-overlay.dtbo \
 		sxr1130-cdp-overlay.dtbo \
 		sxr1130-external-codec-cdp-overlay.dtbo \
 		sxr1130-mtp-overlay.dtbo \
@@ -251,6 +253,8 @@ sdm710-tasha-codec-cdp-overlay.dtbo-base := sdm710.dtb
 sdm710-pm660a-tasha-codec-cdp-overlay.dtbo-base := sdm710.dtb
 sdm710-aqt1000-cdp-overlay.dtbo-base := sdm710.dtb
 sdm710-pm660a-aqt1000-cdp-overlay.dtbo-base := sdm710.dtb
+grus-sdm710-overlay.dtbo-base := sdm710.dtb
+grus-sdm712-overlay.dtbo-base := sdm710.dtb
 sxr1130-cdp-overlay.dtbo-base := sxr1130.dtb
 sxr1130-external-codec-cdp-overlay.dtbo-base := sxr1130.dtb
 sxr1130-mtp-overlay.dtbo-base := sxr1130.dtb
@@ -323,6 +327,8 @@ dtb-$(CONFIG_ARCH_SDM670) += sdm670-rumi.dtb \
 	sdm710-usbc-pm660a-mtp.dtb \
 	sdm710-tasha-codec-cdp.dtb \
 	sdm710-pm660a-tasha-codec-cdp.dtb \
+	grus-sdm710.dtb \
+	grus-sdm712.dtb \
 	sxr1130-cdp.dtb \
 	sxr1130-external-codec-cdp.dtb \
 	sxr1130-mtp.dtb \

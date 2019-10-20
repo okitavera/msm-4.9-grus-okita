@@ -694,12 +694,13 @@ void sde_connector_helper_bridge_enable(struct drm_connector *connector)
 				MSM_ENC_TX_COMPLETE);
 	c_conn->allow_bl_update = true;
 
-	if (c_conn->bl_device) {
+	if (!display->is_first_boot && c_conn->bl_device) {
 		c_conn->bl_device->props.power = FB_BLANK_UNBLANK;
 		c_conn->bl_device->props.state &= ~BL_CORE_FBBLANK;
 		backlight_update_status(c_conn->bl_device);
 	}
 	c_conn->panel_dead = false;
+	display->is_first_boot = false;
 }
 
 int sde_connector_clk_ctrl(struct drm_connector *connector, bool enable)
@@ -1115,6 +1116,10 @@ static int sde_connector_atomic_set_property(struct drm_connector *connector,
 	/* connector-specific property handling */
 	idx = msm_property_index(&c_conn->property_info, property);
 	switch (idx) {
+	case CONNECTOR_PROP_LP:
+		if (connector->dev)
+			connector->dev->state = val;
+		break;
 	case CONNECTOR_PROP_OUT_FB:
 		/* clear old fb, if present */
 		if (c_state->out_fb)
@@ -2069,6 +2074,36 @@ exit:
 	return rc;
 }
 
+static irqreturn_t esd_err_irq_handle(int irq, void *data)
+{
+	struct sde_connector *c_conn = data;
+	struct drm_event event;
+	struct dsi_display *dsi_display;
+	bool panel_dead = false;
+
+	if (!c_conn && !c_conn->display) {
+		SDE_ERROR("not able to get connector object\n");
+		return IRQ_HANDLED;
+	}
+
+	dsi_display = (struct dsi_display *)(c_conn->display);
+	if (!dsi_display->panel->panel_initialized) {
+		pr_info("%s: Panel is not initialized, skip it!\n", __func__);
+		return IRQ_HANDLED;
+	}
+
+	SDE_ERROR("esd check irq report PANEL_DEAD conn_id: %d enc_id: %d\n",
+		c_conn->base.base.id, c_conn->encoder->base.id);
+
+	panel_dead = true;
+	event.type = DRM_EVENT_PANEL_DEAD;
+	event.length = sizeof(bool);
+	msm_mode_object_event_notify(&c_conn->base.base,
+		c_conn->base.dev, &event, (u8 *)&panel_dead);
+	sde_encoder_display_failure_notification(c_conn->encoder);
+	return IRQ_HANDLED;
+}
+
 struct drm_connector *sde_connector_init(struct drm_device *dev,
 		struct drm_encoder *encoder,
 		struct drm_panel *panel,
@@ -2216,6 +2251,22 @@ struct drm_connector *sde_connector_init(struct drm_device *dev,
 				&dsi_display->panel->hdr_props,
 				sizeof(dsi_display->panel->hdr_props),
 				CONNECTOR_PROP_HDR_INFO);
+		}
+
+		/* register esd irq and enable it after panel enabled */
+		if (dsi_display && dsi_display->panel &&
+			dsi_display->panel->esd_config.esd_err_irq > 0 &&
+			dsi_display->panel->esd_config.esd_interrupt_flags >= 0) {
+			rc = request_threaded_irq(dsi_display->panel->esd_config.esd_err_irq,
+							NULL, esd_err_irq_handle,
+							dsi_display->panel->esd_config.esd_interrupt_flags,
+							"esd_err_irq", c_conn);
+			if (rc < 0) {
+				pr_err("%s: request irq %d failed\n", __func__, dsi_display->panel->esd_config.esd_err_irq);
+				dsi_display->panel->esd_config.esd_err_irq = 0;
+			} else {
+				pr_info("%s: Request esd irq %d succeed!\n", __func__, dsi_display->panel->esd_config.esd_err_irq);
+			}
 		}
 	}
 

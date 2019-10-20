@@ -364,7 +364,11 @@ static void msm_restart_prepare(const char *cmd)
 					     restart_reason);
 			}
 		} else if (!strncmp(cmd, "edl", 3)) {
-			enable_emergency_dload_mode();
+			/* Hardcoded for security reason */
+			if (1)
+				__raw_writel(0x77665501, restart_reason);
+			else
+				enable_emergency_dload_mode();
 		} else {
 			__raw_writel(0x77665501, restart_reason);
 		}
