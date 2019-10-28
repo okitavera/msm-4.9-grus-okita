@@ -102,6 +102,11 @@
 #define IPA_IOCTL_DEL_BRIDGE_VLAN_MAPPING       60
 
 /**
+ * Protocol command definition for Invalid NAT entries 
+ */
+#define IPAHAL_NAT_INVALID_PROTOCOL (0xFF)
+
+/**
  * max size of the header to be inserted
  */
 #define IPA_HDR_MAX_SIZE 64
